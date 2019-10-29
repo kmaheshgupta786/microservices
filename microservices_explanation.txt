@@ -1,0 +1,390 @@
+micro services:
+---------------
+
+https://www.youtube.com/watch?v=y8IQb4ofjDo&list=PLqq-6Pq4lTTZSKAFG6aCDVDP86Qx4lNas&index=2&t=0s
+
+Video 1: Agenda
+- creating few micro services.
+- having them communicate each other.
+
+- Sping cloud (stack of technologies) will help you to dreate micro services (one of creation of micro services using spring-cloud).
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+video 02: Why so many technologies - Spring Boot Microservices Level 1
+
+- stated that, we have to learn good number ot technologies to work on microservices.
+the technologies will solves the problems which useually rises between the microservices.
+eg: how to setup loadbalancer for a service.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+03 Microservices vs service oriented architectures - Spring Boot Microservices Level 1
+
+Its Q&A
+
+Q) What is the difference between microservices and webservice(soa - service oriented architecture)?
+microservices also uses the service oriented architecture.
+But in service orient architecute, multiple modules will be group together and serves the request.
+In microservices each service is independent to each other.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+04 The application we'll be building - Spring Boot Microservices Level 1
+
+Explained what type of micro services he is going to create in this series.
+he creating a movie catalog microservices.
+- based on user - what are all movies watched by user and user rating for each matched movie.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+05 Designing the sample microservices - Spring Boot Microservices Level 1
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+06 Creating starter microservice projects - Spring Boot Microservices Level 1
+
+Using start.spring.io create 3 springboot micro services.
+1. io.javabrains.movie-catalog-service (maven artifact) - web app
+2. io.javabrains.movie-info-service (maven artifact) - web app
+3. io.javabrains.ratings-data-service (maven artifact) - web app
+
+
+git location:
+https://github.com/koushikkothagal/spring-boot-microservices-workshop
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+07 Building the Movie Catalog Service API - Spring Boot Microservices Level 1
+
+Develped rest controller : http://localhost:8080/catlog/{userId}
+
+return type: catalog Object : List<catalog>
+class catalog{
+	private String name;
+	private String desc;
+	private int rating;
+}
+	
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+08 Building the Movie Info Service API - Spring Boot Microservices Level 1
+
+Develped rest controller : http://localhost:8080/catlog/{userId}
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+09 Configuring server port for microservices - Spring Boot Microservices Level 1
+
+in application.properties file: enter following propery
+server.port=8081
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+10 Coding the third service and discussing communication - Spring Boot Microservices Level 1
+
+RestTemplate - is going to be deprecated eventually.
+WebClient - is the one replacing the RestTemplate.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+12 Using a Bean to create RestTemplate instance - Spring Boot Microservices Level 1
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+13 Using WebClient to make API calls - Spring Boot Microservices Level 1
+
+RestTemplate is part of web (dependency)
+WebClient is part of ReactiveWeb (dependency) so while creating the spring application add this dependency as well. So that webclient calss will be added to your classpath.
+
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-webflux<artifactId>
+</dependency>
+	
+
+in @configuration class:
+------------------------
+@Bean
+public WebClient.Builder getWebClientBuilder(){
+	WebClient.Builder builder = WebClient.builder();
+	return builder;
+}	
+	
+in @service class:
+------------------
+@Autowired
+private WebClient.Builder webclientBuilder;
+
+inside method use like below:
+webclientBuilder.build()
+				.get()
+				.uri("http://locahost:8081/somedata") //url
+				.retrive() //ResponseSpec
+				.bodyToMono(Movie.class) //Mono<Movie> - return type of your restapi
+				.block(); //wait - as webclient works on async way.
+	
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+14 Making a call to the Ratings API - Spring Boot Microservices Level 1	
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+15 Why you should avoid returning lists in APIs - Spring Boot Microservices Level 1
+
+if you keep return type as list, 
+ - the consumers may face backward compatible issues (mean after certain time if the response added with any new property. ie: consumers not able to read the property
+ as it not part of List<Object> Object.)
+if you keep an object holding only one property that is nothing but List<Object> (ie: private List<Object> objects; in this case if you add extra property to the response
+consumers need to change their code. So backward compatible issues wont be there at all.
+This is the biggest advantage.
+ 
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+16 Audience questions on microservice communication - Spring Boot Microservices Level 1
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+17 Understanding Service Discovery - Spring Boot Microservices Level 1
+
+there are two ways of service discoveries.
+1. client side discovery.
+2. server side discovery.
+
+client: - spring cloud - eureka
+------
+1.  client send the request to discovery server with input like to which service it has to call
+2. discovery server will respond with server detail to which server client should use.
+3. Based on discovery server response, client directly calls the service server
+
+
+server side:
+------------
+1.	Client calls the discovery server
+2.	Discovery server calls the service server to serve the response.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+18 Introducing Eureka - Spring Boot Microservices Level 1
+
+Netflix (open source) organization:
+  Eureka is one of those projects, thats made an open source.
+ 
+ Netfix is one of the leaders in microservice libraries, made an open source that works well with springboot.
+
+Netflix, created the bunch of various libraries to work on service discovery. among
+
+1. Eureka
+2. Ribbon
+3. Hysetrix
+4. Zuul
+
+
+How Eureka server works:
+1. start up eureka server.
+2. have microservices register (publish) using eureka client
+3. have microservices locate (consume) using eureka client
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+19 Starting a Eureka server - Spring Boot Microservices Level 1
+
+Eureka servers is one more spring boot application. It has the UI.
+In UI we can able to see which are all services were rigisterd with eureka server and other metrics.
+
+default port: 8761
+to access: after running the server : use url : http://localhost:8761
+
+
+using spring initializer we can create spring boot application with dependency eureka server (like web)
+
+- there is one more dependency like web related to eureka is "Eureka discovery" - its client related.
+
+@EnableEurekaServer - add this annoatation at class level - exactly at @SpringBootApplication.
+
+- Every eureka server also eureka client. 
+- eureka server should not be involed in registering as eureka client. to achive this we have to define following two properties under application.properties file.
+ie: to stop acting as client.
+
+	1. eureka.client.register-with-eureka=false
+	2. eureka.client.fetch-registry= false
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+20 Creating Eureka clients - Spring Boot Microservices Level 1
+
+to work as eureka clinet our microservice we have to add dependency in our pom.xml
+
+<dependency>
+	<groupId> org.springframework.cloud </groupId>
+	<artifactId> spring-cloud-starter-netfilx-eureka-client </artifactId>
+	<version>Greenwich.RELEASE </version>
+</dependency>
+
+after adding these dependencis and restart the mircroservice it automatically register its service to eureka server.
+not required to write any specific code.
+
+- for more readablility you can add @EnableEurekaClient annotation under @SpringBootApplication.  its optional.
+
+Q) how does eureka client find which one is eureka server and where server is running?
+	- In this example based on default port it will identifies.
+	- Assume eurka server is running on differnet port and different host name, in this case we have define those hostname and port details in application.properties of 
+	  eureka client (microservice) springboot application.
+	  
+	  properties name not mentioned in video.
+	  
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+21 Discovering services through Eureka - Spring Boot Microservices Level 1
+
+
+Previously: in configuration class it was like this	:
+
+@Bean
+public RestTemplate getRestTemplate(){
+	retrurn new RestTemplate();
+}
+
+in service class:
+url was : http://localhost:8081/rating/url
+
+Now after making changes:
+
+@Bean
+@LoadBalanced
+public RestTemplate getRestTemplate(){
+	retrurn new RestTemplate();
+}
+
+in service class : 
+url would be: http://ratings-data-service/rating/url
+in above link ratings-data-service is defined in application.properties of each microservice name. ie: spring.application.name
+
+@LoadBalanced = will do service discovery and load balancer work.
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+22 Doing client side load balancing - Spring Boot Microservices Level 1
+
+
+Assume single service has multiple instances then, to defined user defined load balancer we can use the "DiscoveryClient" class.
+- It should be autowired in your service/controller class.
+
+eg:
+@Autowired
+private DisvoeryClient discoveryClient;
+
+using this reference we can get the list of instances(it has method) and you can get as list and push your request to that instance to serve.
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+Q) What is meaning of API gateways? in Microservices architecture and what are all advantages with it?
+
+ - Explaned very well. - https://www.youtube.com/watch?v=vHQqQBYJtLI&list=PLhfHPmPYPPRk5WxsLhQIOEznHEeFJAoVM&index=3
+ 
+	1. Separate out cross cutting concerns.
+		- SSL termination(enabling https to your application)
+		- Authentication
+		- Authorization
+		- DDoS protection/throttling
+		
+	2. separate and consolidate cross cutting concerns across microservices.
+		- Routing
+	
+	3. Replacing multiple client calls with single api call. Also some features of reverse proxy.
+		- serving the static content.
+		- caching the responses.
+	
+	4. Routing based on headers, paths and params etc. Also some features of load balancer component
+		- Load balancing
+		- A/B testing
+		- canary releases
+		
+		
+		
+Examples:
+If selfmanaged:
+			- Apache
+			- HAproxy
+			- NGInx
+			- Spring cloud gateway
+			
+cloud services:
+			- AWS API gate way
+			- Azure API gateway
+			- Google cloud endpoints
+			-  APIgee
+			
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
